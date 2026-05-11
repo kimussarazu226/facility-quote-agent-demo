@@ -81,26 +81,33 @@
               <button type="button" class="btn ghost sm" id="btn-prechat-sample">自動で進める</button>
             </div>
 
-            <div class="chat-app-layout">
-              <div class="chat-main">
-                <div class="chat-pane-header chat-pane-header--ai">
-                  <span class="role-avatar role-avatar--ai" aria-hidden="true"></span>
-                  <span class="role-name">アシスタント</span>
-                </div>
-                <div class="chat-thread" id="prechat-thread" role="log" aria-live="polite"></div>
+            <div class="prechat-area">
+              <div class="chat-pane-header chat-pane-header--ai">
+                <span class="role-avatar role-avatar--ai" aria-hidden="true"></span>
+                <span class="role-name">アシスタント</span>
               </div>
+              <div class="chat-thread" id="prechat-thread" role="log" aria-live="polite"></div>
 
-              <aside class="user-dock" id="user-dock" aria-label="あなたの回答。ボタンから選択">
-                <div class="chat-pane-header chat-pane-header--you">
-                  <span class="role-avatar role-avatar--you" aria-hidden="true"></span>
-                  <span class="role-name">あなた</span>
+              <div class="prechat-composer" id="prechat-composer">
+                <div class="prechat-suggestions" id="prechat-suggestions" aria-label="入力のヒント"></div>
+                <div class="prechat-composer-row">
+                  <label class="visually-hidden" for="prechat-input">メッセージ</label>
+                  <textarea
+                    id="prechat-input"
+                    class="prechat-input"
+                    rows="2"
+                    maxlength="800"
+                    placeholder="メッセージを入力して送信"
+                    autocomplete="off"
+                  ></textarea>
+                  <button type="button" class="btn primary prechat-send" id="btn-prechat-send">
+                    送信
+                  </button>
                 </div>
-                <p class="dock-hint">選択</p>
-                <div class="chat-chips" id="prechat-chips" aria-label="回答"></div>
-              </aside>
+              </div>
             </div>
             <div class="prechat-summary" id="prechat-summary" hidden>
-              <h3 class="mini-title">前提</h3>
+              <h3 class="mini-title">メモ</h3>
               <ul class="prechat-summary-list" id="prechat-summary-list"></ul>
             </div>
             <div class="card-foot">

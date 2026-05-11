@@ -1,29 +1,26 @@
 /** @typedef {{ code: string; description: string; quantity: number; unit: string }} ScopeItem */
 
-/** 事前確認チャット（法務・情シス寄りの論点のたたき台） */
+/** 事前チャット（テキスト送信が主。ヒントは入力欄下に控えめに表示） */
 const PRECHAT_SCRIPT = [
   {
-    summaryTitle: "データ",
+    summaryTitle: "補足",
     agent:
-      "見積に使う<strong>図面・施設情報</strong>を、クラウドのAIに渡してよい前提は決まっていますか？",
-    choices: ["ダミーのみ", "本番はマスク検討", "未定"],
+      "<strong>ポートサイド本館（架空）</strong>の一括保守見積を出します。依頼文に足したいことがあれば、自由に書いてください。",
+    suggestions: ["特になし", "B1は深夜立入のみ、と一文足したい"],
   },
   {
-    summaryTitle: "連絡",
-    agent: "協力会社への送信は、<strong>人の承認のあと</strong>でよいですか？",
-    choices: ["承認後でよい", "社内で検討", "ドラフトのみ"],
-  },
-  {
-    summaryTitle: "依頼票",
-    agent: "チャットで決めた<strong>期限・立入</strong>を、依頼票にそのまま載せてよいですか？",
-    choices: ["はい", "あとで差替", "仮でよい"],
+    summaryTitle: "期限",
+    agent: "回答期限は <strong>5/25</strong> のままで進めますか？",
+    suggestions: ["そのままでOK", "1週間だけ延ばしたい"],
   },
 ];
 
-const PRECHAT_SUGGESTED = ["ダミーのみ", "承認後でよい", "仮でよい"];
+const PRECHAT_SAMPLE_TEXTS = ["特になし", "そのままでOK"];
 
 /** @type {{ title: string; answer: string }[]} */
 let prechatAnswers = [];
+
+let prechatBusy = false;
 
 const RFQ = {
   request_id: "RFQ-2026-DEMO-0842",
@@ -211,14 +208,59 @@ function resetAgentAndLaterPanes() {
 
 function resetPrechat() {
   prechatAnswers = [];
+  prechatBusy = false;
   const thread = $("prechat-thread");
-  const chips = $("prechat-chips");
   if (thread) thread.innerHTML = "";
-  if (chips) chips.innerHTML = "";
+  clearPrechatSuggestions();
+  const input = $("prechat-input");
+  if (input instanceof HTMLTextAreaElement) input.value = "";
+  setPrechatComposerState(false);
   $("prechat-summary")?.setAttribute("hidden", "");
   $("btn-show-rfq")?.setAttribute("hidden", "");
   $("btn-to-vendors")?.setAttribute("hidden", "");
   $("rfq-section")?.setAttribute("hidden", "");
+}
+
+/** @param {boolean} enabled */
+function setPrechatComposerState(enabled) {
+  const input = $("prechat-input");
+  const send = $("btn-prechat-send");
+  if (input instanceof HTMLTextAreaElement) {
+    input.disabled = !enabled;
+    if (enabled) {
+      input.removeAttribute("aria-disabled");
+    } else {
+      input.setAttribute("aria-disabled", "true");
+    }
+  }
+  if (send instanceof HTMLButtonElement) send.disabled = !enabled;
+}
+
+function clearPrechatSuggestions() {
+  const el = $("prechat-suggestions");
+  if (el) el.innerHTML = "";
+}
+
+/**
+ * @param {string[] | undefined} suggestions
+ */
+function renderPrechatSuggestions(suggestions) {
+  const root = $("prechat-suggestions");
+  const input = $("prechat-input");
+  if (!root || !(input instanceof HTMLTextAreaElement)) return;
+  root.innerHTML = "";
+  if (!suggestions?.length) return;
+  for (const s of suggestions) {
+    const b = document.createElement("button");
+    b.type = "button";
+    b.className = "prechat-suggestion";
+    b.textContent = s;
+    b.addEventListener("click", () => {
+      input.value = s;
+      input.focus();
+    });
+    root.appendChild(b);
+  }
 }
 
 function appendAgentBubble(html) {
@@ -244,30 +286,9 @@ function appendUserBubble(text) {
   thread.scrollTop = thread.scrollHeight;
 }
 
-function clearChoiceChips() {
-  const root = $("prechat-chips");
-  if (root) root.innerHTML = "";
-}
-
-/**
- * @param {string[]} choices
- * @param {(c: string) => void} onPick
- */
-function renderChoiceChips(choices, onPick) {
-  const root = $("prechat-chips");
-  if (!root) return;
-  root.innerHTML = "";
-  for (const c of choices) {
-    const b = document.createElement("button");
-    b.type = "button";
-    b.className = "chip-btn";
-    b.textContent = c;
-    b.addEventListener("click", () => onPick(c));
-    root.appendChild(b);
-  }
-}
-
 function showPrechatSummary() {
+  clearPrechatSuggestions();
+  setPrechatComposerState(false);
   const ul = $("prechat-summary-list");
   ul.innerHTML = "";
   for (const a of prechatAnswers) {
@@ -287,24 +308,37 @@ function escapeHtml(s) {
   return d.innerHTML;
 }
 
-async function onPrechatChoice(choice) {
+async function submitPrechat() {
   const idx = prechatAnswers.length;
-  if (idx >= PRECHAT_SCRIPT.length) return;
+  if (idx >= PRECHAT_SCRIPT.length || prechatBusy) return;
+  const input = $("prechat-input");
+  if (!(input instanceof HTMLTextAreaElement)) return;
+  const text = input.value.trim();
+  if (!text) return;
 
-  clearChoiceChips();
-  appendUserBubble(choice);
+  prechatBusy = true;
+  clearPrechatSuggestions();
+  setPrechatComposerState(false);
+  input.value = "";
+  appendUserBubble(text);
   prechatAnswers.push({
     title: PRECHAT_SCRIPT[idx].summaryTitle,
-    answer: choice,
+    answer: text,
   });
 
-  await sleep(400);
-  const next = prechatAnswers.length;
-  if (next < PRECHAT_SCRIPT.length) {
-    appendAgentBubble(PRECHAT_SCRIPT[next].agent);
-    renderChoiceChips(PRECHAT_SCRIPT[next].choices, (c) => void onPrechatChoice(c));
-  } else {
-    showPrechatSummary();
+  try {
+    await sleep(400);
+    const next = prechatAnswers.length;
+    if (next < PRECHAT_SCRIPT.length) {
+      appendAgentBubble(PRECHAT_SCRIPT[next].agent);
+      renderPrechatSuggestions(PRECHAT_SCRIPT[next].suggestions);
+      setPrechatComposerState(true);
+      input.focus();
+    } else {
+      showPrechatSummary();
+    }
+  } finally {
+    prechatBusy = false;
   }
 }
 
@@ -312,15 +346,19 @@ async function beginPrechat() {
   resetPrechat();
   await sleep(280);
   appendAgentBubble(PRECHAT_SCRIPT[0].agent);
-  renderChoiceChips(PRECHAT_SCRIPT[0].choices, (c) => void onPrechatChoice(c));
+  renderPrechatSuggestions(PRECHAT_SCRIPT[0].suggestions);
+  setPrechatComposerState(true);
+  const input = $("prechat-input");
+  if (input instanceof HTMLTextAreaElement) input.focus();
 }
 
 async function skipPrechatWithSample() {
   resetPrechat();
+  setPrechatComposerState(false);
   for (let i = 0; i < PRECHAT_SCRIPT.length; i++) {
     appendAgentBubble(PRECHAT_SCRIPT[i].agent);
     await sleep(160);
-    const ans = PRECHAT_SUGGESTED[i] ?? PRECHAT_SCRIPT[i].choices[0];
+    const ans = PRECHAT_SAMPLE_TEXTS[i] ?? "";
     appendUserBubble(ans);
     prechatAnswers.push({
       title: PRECHAT_SCRIPT[i].summaryTitle,
@@ -402,9 +440,6 @@ async function runRequestPhase() {
   setProgress(5, "…");
   logLine("情報", "送信はしません（デモ）。");
 
-  if (prechatAnswers.length > 0) {
-    logLine("前提", prechatAnswers.map((a) => `${a.title}:${a.answer}`).join(" "));
-  }
   await sleep(280);
   setProgress(28, "…");
   logLine("整形", RFQ.request_id);
@@ -503,21 +538,12 @@ function renderApprovalSummary() {
   const el = $("approval-summary");
   if (!el) return;
   const best = QUOTES[0];
-  const chatLine =
-    prechatAnswers.length > 0
-      ? prechatAnswers.map((a) => `${a.title}: ${a.answer}`).join(" · ")
-      : "（チャット未実施）";
 
   el.innerHTML = `
     <ul class="approval-list approval-list--compact">
       <li>${escapeHtml(RFQ.facility.name)} · ${escapeHtml(RFQ.request_id)}</li>
       <li>最安 ${escapeHtml(best.display_name)} · ${yen(best.total_yen)}</li>
       <li>有効 ${escapeHtml(best.valid_until)}</li>
-      ${
-        prechatAnswers.length
-          ? `<li class="approval-chat">${escapeHtml(chatLine)}</li>`
-          : ""
-      }
     </ul>
   `;
 }
@@ -611,6 +637,18 @@ function wire() {
 
   $("btn-prechat-sample").addEventListener("click", () => {
     void skipPrechatWithSample();
+  });
+
+  const preInput = $("prechat-input");
+  if (preInput instanceof HTMLTextAreaElement) {
+    preInput.addEventListener("keydown", (e) => {
+      if (e.key !== "Enter" || e.shiftKey) return;
+      e.preventDefault();
+      void submitPrechat();
+    });
+  }
+  $("btn-prechat-send")?.addEventListener("click", () => {
+    void submitPrechat();
   });
 
   $("btn-show-rfq").addEventListener("click", () => {
