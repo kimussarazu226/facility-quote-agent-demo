@@ -15,7 +15,11 @@ const PRECHAT_SCRIPT = [
   },
 ];
 
-const PRECHAT_SAMPLE_TEXTS = ["特になし", "そのままでOK"];
+/** 自動進行時の回答（空ならユーザー吹き出しは出さずに進む） */
+const PRECHAT_SAMPLE_TEXTS = ["", ""];
+
+/** メモ用（未入力のとき） */
+const PRECHAT_EMPTY_MEMO = "―（デモ・未入力）";
 
 /** @type {{ title: string; answer: string }[]} */
 let prechatAnswers = [];
@@ -314,16 +318,17 @@ async function submitPrechat() {
   const input = $("prechat-input");
   if (!(input instanceof HTMLTextAreaElement)) return;
   const text = input.value.trim();
-  if (!text) return;
 
   prechatBusy = true;
   clearPrechatSuggestions();
   setPrechatComposerState(false);
   input.value = "";
-  appendUserBubble(text);
+  if (text) {
+    appendUserBubble(text);
+  }
   prechatAnswers.push({
     title: PRECHAT_SCRIPT[idx].summaryTitle,
-    answer: text,
+    answer: text || PRECHAT_EMPTY_MEMO,
   });
 
   try {
@@ -358,11 +363,13 @@ async function skipPrechatWithSample() {
   for (let i = 0; i < PRECHAT_SCRIPT.length; i++) {
     appendAgentBubble(PRECHAT_SCRIPT[i].agent);
     await sleep(160);
-    const ans = PRECHAT_SAMPLE_TEXTS[i] ?? "";
-    appendUserBubble(ans);
+    const ans = (PRECHAT_SAMPLE_TEXTS[i] ?? "").trim();
+    if (ans) {
+      appendUserBubble(ans);
+    }
     prechatAnswers.push({
       title: PRECHAT_SCRIPT[i].summaryTitle,
-      answer: ans,
+      answer: ans || PRECHAT_EMPTY_MEMO,
     });
     await sleep(140);
   }
