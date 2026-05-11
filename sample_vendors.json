@@ -1,0 +1,20 @@
+[
+  {
+    "vendor_id": "vendor-alpha",
+    "display_name": "中央設備メンテナンス株式会社（架空）",
+    "channel": "email",
+    "contact_email": "mitsumori@chuo-setsubi.example.ne.jp"
+  },
+  {
+    "vendor_id": "vendor-beta",
+    "display_name": "ベイエリアFMサービス合同会社（架空）",
+    "channel": "email",
+    "contact_email": "sales@bayarea-fm.example.ne.jp"
+  },
+  {
+    "vendor_id": "ion-delight-style",
+    "display_name": "グリーンビルテック株式会社（統合FM・架空）",
+    "channel": "portal_mock",
+    "portal_url": "https://example-vendor-portal.example/quote-request"
+  }
+]

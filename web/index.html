@@ -1,0 +1,224 @@
+<!DOCTYPE html>
+<html lang="ja">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1" />
+    <title>見積フロー</title>
+    <meta
+      name="description"
+      content="複数社見積の流れを体験するUIデモ。送信なし・架空データ。"
+    />
+    <meta property="og:title" content="見積フロー · デモ" />
+    <meta
+      property="og:description"
+      content="送信なし。画面上のシミュレーションのみ。"
+    />
+    <link rel="preconnect" href="https://fonts.googleapis.com" />
+    <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+    <link
+      href="https://fonts.googleapis.com/css2?family=Noto+Sans+JP:wght@400;500;600;700&display=swap"
+      rel="stylesheet"
+    />
+    <link rel="stylesheet" href="./styles.css" />
+  </head>
+  <body>
+    <header class="site-head">
+      <p class="demo-banner" role="note">デモ · 外部送信なし · 架空データ</p>
+      <div class="topbar">
+        <div class="brand">
+          <span class="brand-mark" aria-hidden="true"></span>
+          <span class="brand-text">見積フロー</span>
+          <span class="badge">デモ</span>
+        </div>
+        <button type="button" class="btn ghost sm" id="btn-replay" hidden>最初から</button>
+      </div>
+    </header>
+    <div class="bg-grid" aria-hidden="true"></div>
+
+    <main class="shell">
+      <section class="panel hero" id="screen-hero">
+        <h1 class="hero-title">見積フロー</h1>
+        <p class="hero-tagline">AIが下回り、あなたが選ぶ。</p>
+        <div class="hero-roles" aria-hidden="true">
+          <div class="hero-role hero-role--ai">
+            <span class="hero-role-icon" aria-hidden="true"></span>
+            <span>AI</span>
+          </div>
+          <div class="hero-role hero-role--you">
+            <span class="hero-role-icon hero-role-icon--you" aria-hidden="true"></span>
+            <span>あなた</span>
+          </div>
+        </div>
+        <div class="hero-actions">
+          <button type="button" class="btn primary lg" id="btn-start">開始</button>
+        </div>
+      </section>
+
+      <section class="panel flow" id="screen-flow" hidden>
+        <div class="flow-progress" aria-label="進行状況">
+          <div class="flow-progress-track">
+            <div class="flow-progress-fill" id="flow-progress-fill"></div>
+          </div>
+          <ol class="flow-progress-steps">
+            <li class="fps-item is-active" data-step="1"><span class="fps-dot">1</span><span class="fps-label">確認</span></li>
+            <li class="fps-item" data-step="2"><span class="fps-dot">2</span><span class="fps-label">依頼</span></li>
+            <li class="fps-item" data-step="3"><span class="fps-dot">3</span><span class="fps-label">整理</span></li>
+            <li class="fps-item" data-step="4"><span class="fps-dot">4</span><span class="fps-label">金額</span></li>
+            <li class="fps-item" data-step="5"><span class="fps-dot">5</span><span class="fps-label">承認</span></li>
+            <li class="fps-item" data-step="6"><span class="fps-dot">6</span><span class="fps-label">提示</span></li>
+          </ol>
+        </div>
+
+        <div class="stage">
+          <!-- 1. 見積に必要な情報の確認（チャット + 依頼票） -->
+          <article class="card stage-pane" id="pane-1">
+            <header class="card-head card-head-tight">
+              <span class="pane-kicker">1</span>
+              <h2>確認</h2>
+            </header>
+
+            <div class="prechat-toolbar">
+              <button type="button" class="btn ghost sm" id="btn-prechat-sample">自動で進める</button>
+            </div>
+
+            <div class="chat-app-layout">
+              <div class="chat-main">
+                <div class="chat-pane-header chat-pane-header--ai">
+                  <span class="role-avatar role-avatar--ai" aria-hidden="true"></span>
+                  <span class="role-name">アシスタント</span>
+                </div>
+                <div class="chat-thread" id="prechat-thread" role="log" aria-live="polite"></div>
+              </div>
+
+              <aside class="user-dock" id="user-dock" aria-label="あなたの回答。ボタンから選択">
+                <div class="chat-pane-header chat-pane-header--you">
+                  <span class="role-avatar role-avatar--you" aria-hidden="true"></span>
+                  <span class="role-name">あなた</span>
+                </div>
+                <p class="dock-hint">選択</p>
+                <div class="chat-chips" id="prechat-chips" aria-label="回答"></div>
+              </aside>
+            </div>
+            <div class="prechat-summary" id="prechat-summary" hidden>
+              <h3 class="mini-title">前提</h3>
+              <ul class="prechat-summary-list" id="prechat-summary-list"></ul>
+            </div>
+            <div class="card-foot">
+              <button type="button" class="btn primary btn-block" id="btn-show-rfq" hidden>依頼票を見る</button>
+            </div>
+
+            <section class="rfq-section" id="rfq-section" hidden>
+              <h3 class="flow-section-title">依頼票</h3>
+              <div class="grid-2">
+                <div class="kv">
+                  <div class="k">依頼番号</div>
+                  <div class="v" id="rfq-id"></div>
+                  <div class="k">対象施設</div>
+                  <div class="v" id="rfq-facility"></div>
+                  <div class="k">延床（参考）</div>
+                  <div class="v" id="rfq-area"></div>
+                  <div class="k">業務区分</div>
+                  <div class="v" id="rfq-category"></div>
+                  <div class="k">依頼元（架空）</div>
+                  <div class="v" id="rfq-buyer"></div>
+                  <div class="k">契約期間</div>
+                  <div class="v" id="rfq-period"></div>
+                  <div class="k">回答期限</div>
+                  <div class="v" id="rfq-due"></div>
+                </div>
+                <div>
+                  <h3 class="mini-title">スコープ</h3>
+                  <ul class="item-list" id="rfq-items"></ul>
+                  <p class="note" id="rfq-notes"></p>
+                </div>
+              </div>
+            </section>
+
+            <footer class="card-foot">
+              <button type="button" class="btn primary btn-block" id="btn-to-vendors" hidden>各社に依頼</button>
+            </footer>
+          </article>
+
+          <!-- 2. 各社に見積依頼 -->
+          <article class="card stage-pane" id="pane-2" hidden>
+            <header class="card-head card-head-tight">
+              <span class="pane-kicker">2</span>
+              <h2>依頼</h2>
+            </header>
+            <div class="agent-layout">
+              <div class="agent-log" id="agent-log" role="log" aria-live="polite"></div>
+              <div class="agent-side">
+                <div class="progress-wrap">
+                  <div class="progress-bar" id="progress-bar"></div>
+                </div>
+                <p class="progress-label" id="progress-label">準備中…</p>
+                <ul class="vendor-chips" id="vendor-chips"></ul>
+              </div>
+            </div>
+            <footer class="card-foot">
+              <button type="button" class="btn primary btn-block" id="btn-to-consolidate" hidden>取りまとめ</button>
+            </footer>
+          </article>
+
+          <!-- 3. 戻ってきた情報の取りまとめ -->
+          <article class="card stage-pane" id="pane-3" hidden>
+            <header class="card-head card-head-tight">
+              <span class="pane-kicker">3</span>
+              <h2>整理</h2>
+            </header>
+            <div id="consolidate-root"></div>
+            <footer class="card-foot">
+              <button type="button" class="btn primary btn-block" id="btn-to-amounts">金額を見る</button>
+            </footer>
+          </article>
+
+          <!-- 4. 金額まとめ -->
+          <article class="card stage-pane" id="pane-4" hidden>
+            <header class="card-head card-head-tight">
+              <span class="pane-kicker">4</span>
+              <h2>金額</h2>
+            </header>
+            <div class="compare" id="compare-root"></div>
+            <footer class="card-foot">
+              <button type="button" class="btn primary btn-block" id="btn-to-approval">承認へ</button>
+            </footer>
+          </article>
+
+          <!-- 5. 上司に承認 -->
+          <article class="card stage-pane" id="pane-5" hidden>
+            <header class="card-head card-head-tight">
+              <span class="pane-kicker">5</span>
+              <h2>承認</h2>
+            </header>
+            <div class="approval-box" id="approval-summary"></div>
+            <label class="approval-row">
+              <input type="checkbox" id="boss-check" />
+              <span class="approval-row-text">確認済み</span>
+            </label>
+            <footer class="card-foot">
+              <button type="button" class="btn primary btn-block" id="btn-to-client" disabled>客先へ</button>
+            </footer>
+          </article>
+
+          <!-- 6. 客先に提示 -->
+          <article class="card stage-pane" id="pane-6" hidden>
+            <header class="card-head card-head-tight">
+              <span class="pane-kicker">6</span>
+              <h2>提示</h2>
+            </header>
+            <div class="client-sheet" id="client-sheet"></div>
+            <footer class="card-foot">
+              <button type="button" class="btn ghost btn-block" id="btn-replay-bottom">やり直す</button>
+            </footer>
+          </article>
+        </div>
+      </section>
+    </main>
+
+    <footer class="page-foot">
+      <small>デモ · 送信なし</small>
+    </footer>
+
+    <script src="./app.js" type="module"></script>
+  </body>
+</html>

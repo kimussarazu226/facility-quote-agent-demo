@@ -1,0 +1,46 @@
+{
+  "request_id": "RFQ-2026-DEMO-0842",
+  "facility": {
+    "name": "ポートサイドSC 本館（架空）",
+    "address": "神奈川県○○市 ○○町1-1-1",
+    "floor_area_m2": 12800,
+    "note": "地上3階＋屋上機械室"
+  },
+  "scope": {
+    "category": "商業施設 · 設備保守一括（サンプル）",
+    "items": [
+      {
+        "code": "PAC-INS-26",
+        "description": "パッケージ空調 定期点検（年4回・48台）",
+        "quantity": 1,
+        "unit": "式"
+      },
+      {
+        "code": "ELV-FM-26",
+        "description": "エレベーター 年間保守（制御盤含む・4台）",
+        "quantity": 4,
+        "unit": "台"
+      },
+      {
+        "code": "FIRE-INS",
+        "description": "消防用設備 法令点検（施設一式）",
+        "quantity": 1,
+        "unit": "式"
+      },
+      {
+        "code": "LED-PAT",
+        "description": "照明・非常灯 月1回巡回点検",
+        "quantity": 12,
+        "unit": "月"
+      }
+    ],
+    "period": "2026-06-01 〜 2027-05-31",
+    "notes": "深夜帯のみ立入可のゾーンあり（B1物流バックヤード）。緊急対応は平日8:00–20:00を想定。既存NDA雛形に準拠（架空）。"
+  },
+  "contact": {
+    "company": "テスト商事株式会社 施設管理部（架空）",
+    "email": "demo-facilities@example.ne.jp",
+    "phone": "044-000-0000"
+  },
+  "due_date": "2026-05-25"
+}
