@@ -93,13 +93,15 @@
               <div class="prechat-composer" id="prechat-composer">
                 <div class="prechat-suggestions" id="prechat-suggestions" aria-label="入力のヒント"></div>
                 <div class="prechat-composer-row">
-                  <label class="visually-hidden" for="prechat-input">メッセージ</label>
+                  <label class="visually-hidden" for="prechat-input"
+                    >依頼文への追記（施設側・任意）</label
+                  >
                   <textarea
                     id="prechat-input"
                     class="prechat-input"
                     rows="2"
                     maxlength="800"
-                    placeholder="未入力でも送信で進めます"
+                    placeholder="例）B1は22時以降のみ立入可／緊急連絡は内線3001…（書かなくても進めます）"
                     autocomplete="off"
                   ></textarea>
                   <button type="button" class="btn primary prechat-send" id="btn-prechat-send">
@@ -228,6 +230,6 @@
       <small>デモ · 送信なし</small>
     </footer>
 
-    <script src="./app.js?v=20260511" type="module"></script>
+    <script src="./app.js?v=20260512" type="module"></script>
   </body>
 </html>
